@@ -3,7 +3,6 @@ package host.plas.justtags.commands;
 import host.plas.justtags.JustTags;
 import host.plas.justtags.data.ConfiguredTag;
 import host.plas.justtags.data.TagPlayer;
-import host.plas.justtags.gui.TagGui;
 import host.plas.justtags.gui.menus.EquipGui;
 import host.plas.justtags.managers.TagManager;
 import io.streamlined.bukkit.MessageUtils;

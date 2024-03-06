@@ -1,7 +1,5 @@
 package host.plas.justtags.timers;
 
-import host.plas.justtags.data.ConfiguredTag;
-import host.plas.justtags.data.TagPlayer;
 import host.plas.justtags.managers.TagManager;
 import io.streamlined.bukkit.instances.BaseRunnable;
 
