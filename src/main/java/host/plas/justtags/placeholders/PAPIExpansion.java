@@ -22,6 +22,11 @@ public class PAPIExpansion extends PlaceholderExpansion {
     }
 
     @Override
+    public boolean persist() {
+        return true;
+    }
+
+    @Override
     public String getVersion() {
         return JustTags.getInstance().getDescription().getVersion();
     }

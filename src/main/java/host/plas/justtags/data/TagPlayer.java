@@ -2,12 +2,12 @@ package host.plas.justtags.data;
 
 import host.plas.justtags.JustTags;
 import host.plas.justtags.managers.TagManager;
-import io.streamlined.bukkit.lib.thebase.lib.re2j.Matcher;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import tv.quaint.objects.Identifiable;
+import tv.quaint.thebase.lib.re2j.Matcher;
 import tv.quaint.utils.MatcherUtils;
 
 import java.util.List;

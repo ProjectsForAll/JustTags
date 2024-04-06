@@ -1,9 +1,9 @@
-import org.codehaus.groovy.runtime.GStringImpl
-
 plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '7.1.2' // for shadowing
 }
+
+apply from: rootDir.toString() + '/dependencies.gradle'
 
 group = properties['group']
 version = properties['version']
@@ -27,38 +27,29 @@ repositories {
         name = "sonatype"
         url = "https://oss.sonatype.org/content/groups/public/"
     }
-    maven {
-        name = "jitpack"
-        url = "https://jitpack.io"
-    }
+    maven { url "https://jitpack.io" }
     maven {
         name = "placeholderapi"
         url = "https://repo.extendedclip.com/content/repositories/placeholderapi/"
     }
-    maven {
-        name = "papermc"
-        url = "https://repo.papermc.io/repository/maven-public/"
-    }
+    maven { url 'https://repo.papermc.io/repository/maven-snapshots/' }
+    maven { url 'https://repo.papermc.io/repository/maven-public/' }
 }
 
+disableAutoTargetJvm()
+
 dependencies {
-//    compileOnly "org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT"
+    // Defaults.
+    compileOnly(files(FILES))
+    annotationProcessor(ANNO)
+    implementation(IMPL)
+    compileOnly(COMP_ONLY)
+    shadow(SHADOW)
 
-    compileOnly (files("impl/paper-api.jar"))
+    implementation(annotationProcessor(shadow("com.github.Streamline-Essentials:BukkitOfUtils:-SNAPSHOT")))
 
-    annotationProcessor(shadow(implementation("com.github.Streamline-Essentials:BukkitOfUtils:master-SNAPSHOT")))
-
-    implementation "com.github.hamza-cskn.obliviate-invs:core:4.3.0"
-
-    implementation "net.kyori:adventure-api:4.16.0"
-    implementation "net.kyori:adventure-text-serializer-gson:4.16.0"
-    implementation "net.kyori:adventure-text-serializer-legacy:4.16.0"
-    implementation "net.kyori:adventure-text-serializer-plain:4.16.0"
-    implementation "net.kyori:adventure-text-minimessage:4.16.0"
-    implementation "net.kyori:adventure-text-serializer-ansi:4.16.0"
-    implementation "net.kyori:ansi:1.0.3"
-
-    compileOnly "me.clip:placeholderapi:2.11.5"
+    // Other Plugins
+    compileOnly(OTHER_PLUGINS)
 }
 
 processResources {
@@ -91,4 +82,9 @@ shadowJar {
 
 artifacts {
     archives shadowJar
+}
+
+wrapper {
+    gradleVersion = '8.7'
+    distributionType = Wrapper.DistributionType.ALL
 }

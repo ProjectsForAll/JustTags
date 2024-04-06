@@ -2,10 +2,10 @@ package host.plas.justtags.database;
 
 import host.plas.justtags.JustTags;
 import io.streamlined.bukkit.MessageUtils;
-import io.streamlined.bukkit.lib.thebase.lib.hikari.HikariConfig;
-import io.streamlined.bukkit.lib.thebase.lib.hikari.HikariDataSource;
 import lombok.Getter;
 import lombok.Setter;
+import tv.quaint.thebase.lib.hikari.HikariConfig;
+import tv.quaint.thebase.lib.hikari.HikariDataSource;
 
 import java.io.File;
 import java.sql.Connection;
@@ -38,7 +38,7 @@ public class DBOperator {
 
                 break;
             case SQLITE:
-                config.setJdbcUrl(connectorSet.getUri());
+                config.setJdbcUrl(connectorSet.getUri() + getDatabaseFolder().getPath() + File.separator + connectorSet.getSqliteFileName());
 
                 break;
         }

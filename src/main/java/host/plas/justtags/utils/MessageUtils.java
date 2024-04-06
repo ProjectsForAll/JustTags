@@ -1,8 +1,6 @@
 package host.plas.justtags.utils;
 
 import host.plas.justtags.JustTags;
-import io.streamlined.bukkit.lib.thebase.lib.re2j.Matcher;
-import io.streamlined.bukkit.lib.thebase.lib.re2j.Pattern;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -11,6 +9,8 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
+import tv.quaint.thebase.lib.re2j.Matcher;
+import tv.quaint.thebase.lib.re2j.Pattern;
 import tv.quaint.utils.MatcherUtils;
 
 import java.awt.*;
