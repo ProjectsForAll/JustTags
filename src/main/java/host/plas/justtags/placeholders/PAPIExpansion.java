@@ -33,9 +33,8 @@ public class PAPIExpansion extends PlaceholderExpansion {
 
     @Override
     public String onRequest(OfflinePlayer player, String params) {
-        Optional<TagPlayer> tagPlayerOptional = TagManager.getPlayer(player.getUniqueId().toString());
+        Optional<TagPlayer> tagPlayerOptional = TagManager.getOrGetPlayer(player.getUniqueId().toString());
         if (tagPlayerOptional.isEmpty()) {
-            TagManager.loadOrCreatePlayerAsync(player.getUniqueId().toString());
             return "";
         }
         TagPlayer tagPlayer = tagPlayerOptional.get();
@@ -63,9 +62,8 @@ public class PAPIExpansion extends PlaceholderExpansion {
                 return "";
             }
 
-            Optional<TagPlayer> otherTagPlayerOptional = TagManager.getPlayer(otherPlayer.getUniqueId().toString());
+            Optional<TagPlayer> otherTagPlayerOptional = TagManager.getOrGetPlayer(otherPlayer.getUniqueId().toString());
             if (otherTagPlayerOptional.isEmpty()) {
-                TagManager.loadOrCreatePlayerAsync(otherPlayer.getUniqueId().toString());
                 return null;
             }
             TagPlayer otherTagPlayer = otherTagPlayerOptional.get();

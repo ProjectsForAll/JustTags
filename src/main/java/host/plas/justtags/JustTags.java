@@ -9,8 +9,8 @@ import host.plas.justtags.managers.TagManager;
 import host.plas.justtags.placeholders.PAPIExpansion;
 import host.plas.justtags.timers.AutoCleanTimer;
 import host.plas.justtags.timers.AutoSaveTimer;
-import io.streamlined.bukkit.MessageUtils;
-import io.streamlined.bukkit.PluginBase;
+import host.plas.bou.MessageUtils;
+import host.plas.bou.PluginBase;
 import lombok.Getter;
 import lombok.Setter;
 import mc.obliviate.inventory.InventoryAPI;
@@ -18,6 +18,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.Date;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 @Getter @Setter
@@ -64,21 +65,18 @@ public final class JustTags extends PluginBase {
         setGuiApi(new InventoryAPI(this));
         getGuiApi().init();
 
-        try {
             setMainDatabase(new TagsDBOperator(getDatabaseConfig().getConnectorSet()));
-            Date now = new Date();
-            getMainDatabase().loadAllTags().whenComplete((bool, throwable) -> {
-                if (throwable != null) {
-                    throwable.printStackTrace();
-                    return;
-                }
+            CompletableFuture.runAsync(() -> {
+                try {
+                    Date now = new Date();
 
-                Date lapse = new Date();
-                MessageUtils.logInfo("Loaded " + TagManager.getTags().size() + " tags into memory! Took " + (lapse.getTime() - now.getTime()) + " milliseconds!");
+                    boolean bool = getMainDatabase().loadAllTags().join(); // do we need to get the bool?
+                    Date lapse = new Date();
+                    MessageUtils.logInfo("Loaded " + TagManager.getTags().size() + " tags into memory! Took " + (lapse.getTime() - now.getTime()) + " milliseconds!");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
         setMainListener(new MainListener());
 
@@ -95,8 +93,8 @@ public final class JustTags extends PluginBase {
     public void onBaseDisable() {
         // Plugin shutdown logic
 
-        TagManager.getPlayers().forEach(player -> {
-            player.save(false);
+        TagManager.getLoadedPlayers().forEach(player -> {
+            player.save();
             player.unregister();
         });
 

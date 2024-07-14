@@ -5,9 +5,9 @@ import host.plas.justtags.data.ConfiguredTag;
 import host.plas.justtags.data.TagPlayer;
 import host.plas.justtags.gui.menus.EquipGui;
 import host.plas.justtags.managers.TagManager;
-import io.streamlined.bukkit.MessageUtils;
-import io.streamlined.bukkit.commands.CommandContext;
-import io.streamlined.bukkit.commands.SimplifiedCommand;
+import host.plas.bou.MessageUtils;
+import host.plas.bou.commands.CommandContext;
+import host.plas.bou.commands.SimplifiedCommand;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -70,8 +70,6 @@ public class TagMainCMD extends SimplifiedCommand {
                         commandContext.sendMessage("&aLoaded &f" + TagManager.getTags().size() + " &etags&8...");
                     });
                 });
-
-                TagManager.ensurePlayers();
                 break;
             case "create":
                 if (! sender.hasPermission("justtags.create")) {
@@ -142,33 +140,42 @@ public class TagMainCMD extends SimplifiedCommand {
                 String player = commandContext.getStringArg(1);
                 OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(player);
                 commandContext.sendMessage("&eChecking if the player exists&8...");
-                TagManager.loadOrCreatePlayerAsync(offlinePlayer.getUniqueId().toString()).whenComplete((tagPlayer, throwable) -> {
-                    if (throwable != null) {
-                        commandContext.sendMessage("&cFailed to check if the player exists!");
-                        throwable.printStackTrace();
-                        return;
-                    }
+                Optional<TagPlayer> optional = TagManager.getOrGetPlayer(offlinePlayer.getUniqueId().toString());
+                if (optional.isEmpty()) {
+                    commandContext.sendMessage("&cFailed to check if the player exists!");
+                    return false;
+                }
+                TagPlayer tagPlayer = optional.get();
 
-                    if (tagPlayer == null) {
-                        commandContext.sendMessage("&cA player with that identifier does not exist!");
-                        return;
-                    }
+                String tag2 = commandContext.getStringArg(2);
+                if (tag2.equals("%all")) {
+                    TagManager.getTags().forEach(t -> {
+                        tagPlayer.addAvailableTag(t);
+                        tagPlayer.save();
+                        commandContext.sendMessage("&aGranted &etag &f" + t.getIdentifier() + " &ato &f" + player + "&8!");
 
-                    String tag2 = commandContext.getStringArg(2);
-                    if (! TagManager.isTagLoaded(tag2)) {
-                        commandContext.sendMessage("&cA tag with that identifier does not exist!");
-                        return;
-                    }
-
-                    tagPlayer.addAvailableTag(tag2);
-                    tagPlayer.save();
-                    commandContext.sendMessage("&aGranted &etag &f" + tag2 + " &ato &f" + player + "&8!");
-
-                    tagPlayer.asPlayer().ifPresent(p -> {
-                        if (p.isOnline()) {
-                            MessageUtils.sendMessage(p, "&eThe tag &f" + tag2 + " &ehas been &agranted &eto you&8!");
-                        }
+                        tagPlayer.asPlayer().ifPresent(p -> {
+                            if (p.isOnline()) {
+                                MessageUtils.sendMessage(p, "&eThe tag &f" + t.getIdentifier() + " &ehas been &agranted &eto you&8!");
+                            }
+                        });
                     });
+                    return true;
+                }
+
+                if (! TagManager.isTagLoaded(tag2)) {
+                    commandContext.sendMessage("&cA tag with that identifier does not exist!");
+                    return false;
+                }
+
+                tagPlayer.addAvailableTag(tag2);
+                tagPlayer.save();
+                commandContext.sendMessage("&aGranted &etag &f" + tag2 + " &ato &f" + player + "&8!");
+
+                tagPlayer.asPlayer().ifPresent(p -> {
+                    if (p.isOnline()) {
+                        MessageUtils.sendMessage(p, "&eThe tag &f" + tag2 + " &ehas been &agranted &eto you&8!");
+                    }
                 });
                 break;
             case "revoke":
@@ -185,33 +192,41 @@ public class TagMainCMD extends SimplifiedCommand {
                 String player1 = commandContext.getStringArg(1);
                 OfflinePlayer offlinePlayer1 = Bukkit.getOfflinePlayer(player1);
                 commandContext.sendMessage("&eChecking if the player exists&8...");
-                TagManager.loadOrCreatePlayerAsync(offlinePlayer1.getUniqueId().toString()).whenComplete((tagPlayer, throwable) -> {
-                    if (throwable != null) {
-                        commandContext.sendMessage("&cFailed to check if the player exists!");
-                        throwable.printStackTrace();
-                        return;
-                    }
+                Optional<TagPlayer> optional1 = TagManager.getOrGetPlayer(offlinePlayer1.getUniqueId().toString());
+                if (optional1.isEmpty()) {
+                    commandContext.sendMessage("&cFailed to check if the player exists!");
+                    return false;
+                }
+                TagPlayer tagPlayer1 = optional1.get();
 
-                    if (tagPlayer == null) {
-                        commandContext.sendMessage("&cA player with that identifier does not exist!");
-                        return;
-                    }
+                String tag3 = commandContext.getStringArg(2);
+                if (tag3.equals("%all")) {
+                    tagPlayer1.getAvailable().forEach(t -> {
+                        tagPlayer1.removeAvailableTag(t);
+                        tagPlayer1.save();
+                        commandContext.sendMessage("&aRevoked &etag &f" + t.getIdentifier() + " &afrom &f" + player1 + "&8!");
 
-                    String tag3 = commandContext.getStringArg(2);
-                    if (! TagManager.isTagLoaded(tag3)) {
-                        commandContext.sendMessage("&cA tag with that identifier does not exist!");
-                        return;
-                    }
-
-                    tagPlayer.removeAvailableTag(tag3);
-                    tagPlayer.save();
-                    commandContext.sendMessage("&aRevoked &etag &f" + tag3 + " &afrom &f" + player1 + "&8!");
-
-                    tagPlayer.asPlayer().ifPresent(p -> {
-                        if (p.isOnline()) {
-                            MessageUtils.sendMessage(p, "&eThe tag &f" + tag3 + " &ehas been &crevoked &efrom you&8!");
-                        }
+                        tagPlayer1.asPlayer().ifPresent(p -> {
+                            if (p.isOnline()) {
+                                MessageUtils.sendMessage(p, "&eThe tag &f" + t.getIdentifier() + " &ehas been &crevoked &efrom you&8!");
+                            }
+                        });
                     });
+                    return true;
+                }
+                if (! TagManager.isTagLoaded(tag3)) {
+                    commandContext.sendMessage("&cA tag with that identifier does not exist!");
+                    return false;
+                }
+
+                tagPlayer1.removeAvailableTag(tag3);
+                tagPlayer1.save();
+                commandContext.sendMessage("&aRevoked &etag &f" + tag3 + " &afrom &f" + player1 + "&8!");
+
+                tagPlayer1.asPlayer().ifPresent(p -> {
+                    if (p.isOnline()) {
+                        MessageUtils.sendMessage(p, "&eThe tag &f" + tag3 + " &ehas been &crevoked &efrom you&8!");
+                    }
                 });
                 break;
             case "list":
@@ -273,38 +288,38 @@ public class TagMainCMD extends SimplifiedCommand {
 
                 Optional<Integer> finalIndex = index;
                 Optional<Boolean> finalInsert = insert;
-                TagManager.loadOrCreatePlayerAsync(p.getUniqueId().toString()).whenComplete((tagPlayer, throwable) -> {
-                    if (throwable != null) {
-                        commandContext.sendMessage("&cFailed to load or create the player!");
-                        throwable.printStackTrace();
-                        return;
+
+                Optional<TagPlayer> optional2 = TagManager.getOrGetPlayer(p.getUniqueId().toString());
+                if (optional2.isEmpty()) {
+                    commandContext.sendMessage("&cFailed to check if the player exists!");
+                    return false;
+                }
+                TagPlayer tagPlayer2 = optional2.get();
+
+                if (tagPlayer2.hasTag(tag4)) {
+                    commandContext.sendMessage("&cYou already have that tag equipped!");
+                    return false;
+                }
+
+                finalIndex.ifPresentOrElse((integer) -> {
+                    int fi = integer;
+                    if (fi < 0) {
+                        fi = 0;
+                    }
+                    if (fi > TagPlayer.getHardCapMax()) {
+                        fi = TagPlayer.getHardCapMax();
                     }
 
-                    if (! tagPlayer.hasAvailableTag(tag4)) {
-                        commandContext.sendMessage("&cYou do not have that tag!");
-                        return;
+                    if (finalInsert.isPresent() && finalInsert.get()) {
+                        tagPlayer2.insertTag(fi, tag4);
+                    } else {
+                        tagPlayer2.putTag(fi, tag4);
                     }
+                }, () -> tagPlayer2.insertTag(0, tag4));
 
-                    finalIndex.ifPresentOrElse((integer) -> {
-                        int fi = integer;
-                        if (fi < 0) {
-                            fi = 0;
-                        }
-                        if (fi > TagPlayer.getHardCapMax()) {
-                            fi = TagPlayer.getHardCapMax();
-                        }
+                tagPlayer2.save();
 
-                        if (finalInsert.isPresent() && finalInsert.get()) {
-                            tagPlayer.insertTag(fi, tag4);
-                        } else {
-                            tagPlayer.putTag(fi, tag4);
-                        }
-                    }, () -> tagPlayer.insertTag(0, tag4));
-
-                    tagPlayer.save();
-
-                    commandContext.sendMessage("&aEquipped &etag &f" + tag4 + " &ato yourself&8!");
-                });
+                commandContext.sendMessage("&aEquipped &etag &f" + tag4 + " &ato yourself&8!");
                 break;
             case "unequip":
                 if (! (sender instanceof Player)) {
@@ -334,23 +349,22 @@ public class TagMainCMD extends SimplifiedCommand {
                     return true;
                 }
 
-                TagManager.loadOrCreatePlayerAsync(p1.getUniqueId().toString()).whenComplete((tagPlayer, throwable) -> {
-                    if (throwable != null) {
-                        commandContext.sendMessage("&cFailed to load or create the player!");
-                        throwable.printStackTrace();
-                        return;
-                    }
+                Optional<TagPlayer> optional3 = TagManager.getOrGetPlayer(p1.getUniqueId().toString());
+                if (optional3.isEmpty()) {
+                    commandContext.sendMessage("&cFailed to check if the player exists!");
+                    return false;
+                }
+                TagPlayer tagPlayer3 = optional3.get();
 
-                    if (! tagPlayer.hasTag(tag5)) {
-                        commandContext.sendMessage("&cYou do not have that tag equipped!");
-                        return;
-                    }
+                if (! tagPlayer3.hasTag(tag5)) {
+                    commandContext.sendMessage("&cYou do not have that tag equipped!");
+                    return false;
+                }
 
-                    tagPlayer.removeTag(tag5);
-                    tagPlayer.save();
+                tagPlayer3.removeTag(tag5);
+                tagPlayer3.save();
 
-                    commandContext.sendMessage("&aUnequipped &etag &f" + tag5 + " &afrom yourself&8!");
-                });
+                commandContext.sendMessage("&aUnequipped &etag &f" + tag5 + " &afrom yourself&8!");
                 break;
             default:
                 commandContext.sendMessage("&cInvalid action!");
@@ -364,6 +378,11 @@ public class TagMainCMD extends SimplifiedCommand {
     public ConcurrentSkipListSet<String> tabComplete(CommandContext commandContext) {
         CommandSender sender = commandContext.getSender().getCommandSender().orElse(null);
         if (sender == null) return new ConcurrentSkipListSet<>();
+        if (! (sender instanceof Player)) return new ConcurrentSkipListSet<>();
+        Player p = (Player) sender;
+
+        TagPlayer tagPlayer = TagManager.getOrGetPlayer(p.getUniqueId().toString()).orElse(null);
+        if (tagPlayer == null) return new ConcurrentSkipListSet<>();
 
         ConcurrentSkipListSet<String> completions = new ConcurrentSkipListSet<>();
 
@@ -385,18 +404,26 @@ public class TagMainCMD extends SimplifiedCommand {
                 if (sender.hasPermission("justtags.revoke")) Bukkit.getOnlinePlayers().forEach(player -> completions.add(player.getName()));
             }
             if (commandContext.getStringArg(0).equalsIgnoreCase("equip")) {
-                if (sender.hasPermission("justtags.equip")) TagManager.getTags().forEach(configuredTag -> completions.add(configuredTag.getIdentifier()));
+                if (sender.hasPermission("justtags.equip")) tagPlayer.getAvailable().stream().filter(t -> ! tagPlayer.getContainer().containsValue(t)).map(ConfiguredTag::getIdentifier).forEach(completions::add);
             }
             if (commandContext.getStringArg(0).equalsIgnoreCase("unequip")) {
-                if (sender.hasPermission("justtags.unequip")) TagManager.getTags().forEach(configuredTag -> completions.add(configuredTag.getIdentifier()));
+                if (sender.hasPermission("justtags.unequip")) tagPlayer.getContainer().values().stream().map(ConfiguredTag::getIdentifier).forEach(completions::add);
             }
         }
         if (commandContext.getArgs().size() == 3) {
             if (commandContext.getStringArg(0).equalsIgnoreCase("grant")) {
-                if (sender.hasPermission("justtags.grant")) TagManager.getTags().forEach(configuredTag -> completions.add(configuredTag.getIdentifier()));
+                if (sender.hasPermission("justtags.grant")) {
+                    TagManager.getTags().stream()
+                            .filter(t -> ! tagPlayer.getAvailable().contains(t))
+                            .map(ConfiguredTag::getIdentifier).forEach(completions::add);
+                    completions.add("%all");
+                }
             }
             if (commandContext.getStringArg(0).equalsIgnoreCase("revoke")) {
-                if (sender.hasPermission("justtags.revoke")) TagManager.getTags().forEach(configuredTag -> completions.add(configuredTag.getIdentifier()));
+                if (sender.hasPermission("justtags.revoke")) {
+                    tagPlayer.getAvailable().stream().map(ConfiguredTag::getIdentifier).forEach(completions::add);
+                    completions.add("%all");
+                }
             }
             if (commandContext.getStringArg(0).equalsIgnoreCase("equip")) {
                 if (sender.hasPermission("justtags.equip")) completions.add("<index>");

@@ -9,38 +9,38 @@ public class Statements {
     public enum MySQL {
         CREATE_DATABASE("CREATE DATABASE IF NOT EXISTS `%database%`;"),
         CREATE_TABLES(
-                "CREATE TABLE IF NOT EXISTS `%table_prefix%players` (" +
-                "Uuid VARCHAR(36) NOT NULL," +
-                "Container TEXT NOT NULL," +
-                "Available TEXT NOT NULL," +
-                "PRIMARY KEY (Uuid)" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;" +
-                "CREATE TABLE IF NOT EXISTS `%table_prefix%tags` (" +
-                "Identifier VARCHAR(36) NOT NULL," +
-                "Value TEXT NOT NULL," +
-                "PRIMARY KEY (Identifier)" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;"
+                "CREATE TABLE IF NOT EXISTS `%table_prefix%players` ( " +
+                "Uuid VARCHAR(36) NOT NULL, " +
+                "Container TEXT NOT NULL, " +
+                "Available TEXT NOT NULL, " +
+                "PRIMARY KEY (Uuid) " +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;;" +
+                "CREATE TABLE IF NOT EXISTS `%table_prefix%tags` ( " +
+                "Identifier VARCHAR(36) NOT NULL, " +
+                "Value TEXT NOT NULL, " +
+                "PRIMARY KEY (Identifier) " +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;;"
         ),
-        PUSH_PLAYER_MAIN("INSERT INTO `%table_prefix%players` (" +
-                "Uuid, Container, Available" +
-                ") VALUES (" +
-                "'%uuid%', '%container%', '%available%'" +
+        PUSH_PLAYER_MAIN("INSERT INTO `%table_prefix%players` ( " +
+                "Uuid, Container, Available " +
+                ") VALUES ( " +
+                "?, ?, ? " +
                 ") ON DUPLICATE KEY UPDATE " +
-                "Container = '%container%', Available = '%available%'" +
+                "Container = ?, Available = ? " +
                 ";"),
-        PUSH_TAG("INSERT INTO `%table_prefix%tags` (" +
-                "Identifier, Value" +
-                ") VALUES (" +
-                "'%identifier%', '%value%'" +
+        PUSH_TAG("INSERT INTO `%table_prefix%tags` ( " +
+                "Identifier, Value " +
+                ") VALUES ( " +
+                "?, ? " +
                 ") ON DUPLICATE KEY UPDATE " +
-                "Value = '%value%'" +
+                "Value = ? " +
                 ";"),
-        PULL_PLAYER_MAIN("SELECT * FROM `%table_prefix%players` WHERE Uuid = '%uuid%';"),
-        PULL_TAG("SELECT * FROM `%table_prefix%tags` WHERE Identifier = '%identifier%';"),
+        PULL_PLAYER_MAIN("SELECT * FROM `%table_prefix%players` WHERE Uuid = ?;"),
+        PULL_TAG("SELECT * FROM `%table_prefix%tags` WHERE Identifier = ?;"),
         PULL_ALL_TAGS("SELECT * FROM `%table_prefix%tags`;"),
-        DROP_TAG("DELETE FROM `%table_prefix%tags` WHERE Identifier = '%identifier%';"),
-        PLAYER_EXISTS("SELECT COUNT(*) FROM `%table_prefix%players` WHERE Uuid = '%uuid%';"),
-        TAG_EXISTS("SELECT COUNT(*) FROM `%table_prefix%tags` WHERE Identifier = '%identifier%';"),
+        DROP_TAG("DELETE FROM `%table_prefix%tags` WHERE Identifier = ?;"),
+        PLAYER_EXISTS("SELECT COUNT(*) FROM `%table_prefix%players` WHERE Uuid = ?;"),
+        TAG_EXISTS("SELECT COUNT(*) FROM `%table_prefix%tags` WHERE Identifier = ?;"),
         ;
 
         private final String statement;
@@ -54,34 +54,34 @@ public class Statements {
     public enum SQLite {
         CREATE_DATABASE(""),
         CREATE_TABLES(
-                "CREATE TABLE IF NOT EXISTS `%table_prefix%players` (" +
-                "Uuid TEXT NOT NULL," +
-                "Container TEXT NOT NULL," +
-                "Available TEXT NOT NULL," +
-                "PRIMARY KEY (Uuid)" +
-                ");" +
-                "CREATE TABLE IF NOT EXISTS `%table_prefix%tags` (" +
-                "Identifier TEXT NOT NULL," +
-                "Value TEXT NOT NULL," +
-                "PRIMARY KEY (Identifier)" +
-                ");"
+                "CREATE TABLE IF NOT EXISTS `%table_prefix%players` ( " +
+                "Uuid TEXT NOT NULL, " +
+                "Container TEXT NOT NULL, " +
+                "Available TEXT NOT NULL, " +
+                "PRIMARY KEY (Uuid) " +
+                ");;" +
+                "CREATE TABLE IF NOT EXISTS `%table_prefix%tags` ( " +
+                "Identifier TEXT NOT NULL, " +
+                "Value TEXT NOT NULL, " +
+                "PRIMARY KEY (Identifier) " +
+                ");;"
         ),
-        PUSH_PLAYER_MAIN("INSERT OR REPLACE INTO `%table_prefix%players` (" +
-                "Uuid, Container, Available" +
-                ") VALUES (" +
-                "'%uuid%', '%container%', '%available%'" +
+        PUSH_PLAYER_MAIN("INSERT OR REPLACE INTO `%table_prefix%players` ( " +
+                "Uuid, Container, Available " +
+                ") VALUES ( " +
+                "?, ?, ? " +
                 ");"),
-        PUSH_TAG("INSERT OR REPLACE INTO `%table_prefix%tags` (" +
-                "Identifier, Value" +
-                ") VALUES (" +
-                "'%identifier%', '%value%'" +
+        PUSH_TAG("INSERT OR REPLACE INTO `%table_prefix%tags` ( " +
+                "Identifier, Value " +
+                ") VALUES ( " +
+                "?, ? " +
                 ");"),
-        PULL_PLAYER_MAIN("SELECT * FROM `%table_prefix%players` WHERE Uuid = '%uuid%';"),
-        PULL_TAG("SELECT * FROM `%table_prefix%tags` WHERE Identifier = '%identifier%';"),
+        PULL_PLAYER_MAIN("SELECT * FROM `%table_prefix%players` WHERE Uuid = ?;"),
+        PULL_TAG("SELECT * FROM `%table_prefix%tags` WHERE Identifier = ?;"),
         PULL_ALL_TAGS("SELECT * FROM `%table_prefix%tags`;"),
-        DROP_TAG("DELETE FROM `%table_prefix%tags` WHERE Identifier = '%identifier%';"),
-        PLAYER_EXISTS("SELECT COUNT(*) FROM `%table_prefix%players` WHERE Uuid = '%uuid%';"),
-        TAG_EXISTS("SELECT COUNT(*) FROM `%table_prefix%tags` WHERE Identifier = '%identifier%';"),
+        DROP_TAG("DELETE FROM `%table_prefix%tags` WHERE Identifier = ?;"),
+        PLAYER_EXISTS("SELECT COUNT(*) FROM `%table_prefix%players` WHERE Uuid = ?;"),
+        TAG_EXISTS("SELECT COUNT(*) FROM `%table_prefix%tags` WHERE Identifier = ?;"),
         ;
 
         private final String statement;

@@ -13,26 +13,30 @@ public class TagsDBOperator extends DBOperator {
         super(set, "Pacifism");
     }
 
+    @Override
     public void ensureDatabase() {
         String s1 = Statements.getStatement(Statements.StatementType.CREATE_DATABASE, this.getConnectorSet());
-        if (s1 == null) return;
-        if (s1.isBlank() || s1.isEmpty()) return;
 
-        this.execute(s1);
+        this.execute(s1, stmt -> {});
     }
 
-    public void ensureTable() {
+    @Override
+    public void ensureTables() {
         String s1 = Statements.getStatement(Statements.StatementType.CREATE_TABLES, this.getConnectorSet());
-        if (s1 == null) return;
-        if (s1.isBlank() || s1.isEmpty()) return;
 
-        this.execute(s1);
+        this.execute(s1, stmt -> {});
     }
 
-    public void ensureUsable() {
-        this.ensureFile();
-        this.ensureDatabase();
-        this.ensureTable();
+    public void pushPlayer(TagPlayer player) {
+        pushPlayer(player, true);
+    }
+
+    public void pushPlayer(TagPlayer player, boolean async) {
+        if (async) {
+            CompletableFuture.runAsync(() -> savePlayer(player).join());
+        } else {
+            savePlayer(player).join();
+        }
     }
 
     public CompletableFuture<Boolean> savePlayer(TagPlayer player) {
@@ -40,14 +44,21 @@ public class TagsDBOperator extends DBOperator {
             ensureUsable();
 
             String s1 = Statements.getStatement(Statements.StatementType.PUSH_PLAYER_MAIN, this.getConnectorSet());
-            if (s1 == null) return false;
-            if (s1.isBlank() || s1.isEmpty()) return false;
 
-            s1 = s1.replace("%uuid%", player.getIdentifier());
-            s1 = s1.replace("%container%", player.getComputableContainer());
-            s1 = s1.replace("%available%", player.getComputableAvailableTags());
+            this.execute(s1, stmt -> {
+                try {
+                    stmt.setString(1, player.getIdentifier());
+                    stmt.setString(2, player.getComputableContainer());
+                    stmt.setString(3, player.getComputableAvailableTags());
 
-            this.execute(s1);
+                    if (getType() == DatabaseType.MYSQL) {
+                        stmt.setString(4, player.getComputableContainer());
+                        stmt.setString(5, player.getComputableAvailableTags());
+                    }
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+            });
 
             return true;
         });
@@ -55,23 +66,18 @@ public class TagsDBOperator extends DBOperator {
 
     public CompletableFuture<Optional<TagPlayer>> loadPlayer(String uuid) {
         return CompletableFuture.supplyAsync(() -> {
-            if (! playerExists(uuid).join()) return Optional.empty();
-
             ensureUsable();
 
             String s1 = Statements.getStatement(Statements.StatementType.PULL_PLAYER_MAIN, this.getConnectorSet());
-            if (s1 == null) return Optional.empty();
-            if (s1.isBlank() || s1.isEmpty()) return Optional.empty();
-
-            s1 = s1.replace("%uuid%", uuid);
 
             AtomicReference<Optional<TagPlayer>> atomicReference = new AtomicReference<>(Optional.empty());
-            this.executeQuery(s1, set -> {
-                if (set == null) {
-                    atomicReference.set(Optional.empty());
-                    return;
+            this.executeQuery(s1, stmt -> {
+                try {
+                    stmt.setString(1, uuid);
+                } catch (Throwable e) {
+                    e.printStackTrace();
                 }
-
+            }, set -> {
                 try {
                     if (set.next()) {
                         TagPlayer player = new TagPlayer(uuid);
@@ -83,13 +89,13 @@ public class TagsDBOperator extends DBOperator {
                         player.computeAvailableTags(available);
 
                         atomicReference.set(Optional.of(player));
+                        return;
                     }
-                    return;
+                    atomicReference.set(Optional.empty());
                 } catch (Exception e) {
                     e.printStackTrace();
+                    atomicReference.set(Optional.empty());
                 }
-
-                atomicReference.set(Optional.empty());
             });
 
             return atomicReference.get();
@@ -101,18 +107,15 @@ public class TagsDBOperator extends DBOperator {
             ensureUsable();
 
             String s1 = Statements.getStatement(Statements.StatementType.PLAYER_EXISTS, this.getConnectorSet());
-            if (s1 == null) return false;
-            if (s1.isBlank() || s1.isEmpty()) return false;
-
-            s1 = s1.replace("%uuid%", uuid);
 
             AtomicReference<Boolean> atomicReference = new AtomicReference<>(false);
-            this.executeQuery(s1, set -> {
-                if (set == null) {
-                    atomicReference.set(false);
-                    return;
+            this.executeQuery(s1, stmt -> {
+                try {
+                    stmt.setString(1, uuid);
+                } catch (Throwable e) {
+                    e.printStackTrace();
                 }
-
+            }, set -> {
                 try {
                     if (set.next()) {
                         int i = set.getInt(1);
@@ -131,18 +134,36 @@ public class TagsDBOperator extends DBOperator {
         });
     }
 
+    public void pushTag(ConfiguredTag tag) {
+        pushTag(tag, true);
+    }
+
+    public void pushTag(ConfiguredTag tag, boolean async) {
+        if (async) {
+            CompletableFuture.runAsync(() -> saveTag(tag).join());
+        } else {
+            saveTag(tag).join();
+        }
+    }
+
     public CompletableFuture<Boolean> saveTag(ConfiguredTag tag) {
         return CompletableFuture.supplyAsync(() -> {
             ensureUsable();
 
             String s1 = Statements.getStatement(Statements.StatementType.PUSH_TAG, this.getConnectorSet());
-            if (s1 == null) return false;
-            if (s1.isBlank() || s1.isEmpty()) return false;
 
-            s1 = s1.replace("%identifier%", tag.getIdentifier());
-            s1 = s1.replace("%value%", tag.getValue());
+            this.execute(s1, stmt -> {
+                try {
+                    stmt.setString(1, tag.getIdentifier());
+                    stmt.setString(2, tag.getValue());
 
-            this.execute(s1);
+                    if (getType() == DatabaseType.MYSQL) {
+                        stmt.setString(3, tag.getValue());
+                    }
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+            });
 
             return true;
         });
@@ -153,13 +174,15 @@ public class TagsDBOperator extends DBOperator {
             ensureUsable();
 
             String s1 = Statements.getStatement(Statements.StatementType.PULL_TAG, this.getConnectorSet());
-            if (s1 == null) return Optional.empty();
-            if (s1.isBlank() || s1.isEmpty()) return Optional.empty();
-
-            s1 = s1.replace("%identifier%", identifier);
 
             AtomicReference<Optional<ConfiguredTag>> atomicReference = new AtomicReference<>(Optional.empty());
-            this.executeQuery(s1, set -> {
+            this.executeQuery(s1, stmt -> {
+                try {
+                    stmt.setString(1, identifier);
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+            }, set -> {
                 if (set == null) {
                     atomicReference.set(Optional.empty());
                     return;
@@ -199,7 +222,13 @@ public class TagsDBOperator extends DBOperator {
             s1 = s1.replace("%identifier%", identifier);
 
             AtomicReference<Boolean> atomicReference = new AtomicReference<>(false);
-            this.executeQuery(s1, set -> {
+            this.executeQuery(s1, stmt -> {
+                try {
+                    stmt.setString(1, identifier);
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+            }, set -> {
                 if (set == null) {
                     atomicReference.set(false);
                     return;
@@ -229,12 +258,10 @@ public class TagsDBOperator extends DBOperator {
             ensureUsable();
 
             String s1 = Statements.getStatement(Statements.StatementType.PULL_ALL_TAGS, this.getConnectorSet());
-            if (s1 == null) return false;
-            if (s1.isBlank() || s1.isEmpty()) return false;
 
-            TagManager.unregisterAllTags();
+            TagManager.unregisterAllTags(); // after get statement in case of errors.
 
-            this.executeQuery(s1, set -> {
+            this.executeQuery(s1, stmt -> {}, set -> {
                 if (set == null) {
                     return;
                 }
@@ -263,12 +290,14 @@ public class TagsDBOperator extends DBOperator {
             ensureUsable();
 
             String s1 = Statements.getStatement(Statements.StatementType.DROP_TAG, this.getConnectorSet());
-            if (s1 == null) return false;
-            if (s1.isBlank() || s1.isEmpty()) return false;
 
-            s1 = s1.replace("%identifier%", identifier);
-
-            this.execute(s1);
+            this.execute(s1, stmt -> {
+                try {
+                    stmt.setString(1, identifier);
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+            });
 
             return true;
         });

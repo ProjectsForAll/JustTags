@@ -1,22 +1,20 @@
 package host.plas.justtags.timers;
 
+import host.plas.bou.scheduling.BaseRunnable;
 import host.plas.justtags.managers.TagManager;
-import io.streamlined.bukkit.instances.BaseRunnable;
 
 public class AutoCleanTimer extends BaseRunnable {
     public AutoCleanTimer() {
-        super(5 * 20, 5 * 20, true);
+        super(5 * 20, 5 * 20);
     }
 
     @Override
-    public void execute() {
-        TagManager.ensurePlayers();
-
-        TagManager.getPlayers().forEach(tagPlayer -> {
+    public void run() {
+        TagManager.getLoadedPlayers().forEach(tagPlayer -> {
             tagPlayer.cleanMap();
 
             if (! tagPlayer.isOnline()) {
-                TagManager.unregisterPlayer(tagPlayer);
+                TagManager.unloadPlayer(tagPlayer, true);
             }
         });
     }

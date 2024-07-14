@@ -2,6 +2,7 @@ package host.plas.justtags.data;
 
 import host.plas.justtags.JustTags;
 import host.plas.justtags.managers.TagManager;
+import host.plas.justtags.utils.MessageUtils;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
@@ -13,6 +14,7 @@ import tv.quaint.utils.MatcherUtils;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,7 +24,18 @@ import java.util.function.Consumer;
 @Getter @Setter
 public class TagPlayer implements Identifiable {
     public UUID getUuid() {
-        return UUID.fromString(identifier);
+        try {
+            return UUID.fromString(identifier);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            MessageUtils.logWarning("Failed to parse UUID from " + identifier);
+            MessageUtils.logWarning("So, we are removing the player from the cache...");
+
+            unregister();
+
+            return null;
+        }
     }
 
     public void setUuid(UUID uuid) {
@@ -285,8 +298,8 @@ public class TagPlayer implements Identifiable {
     }
 
     public void save(boolean async) {
-        if (async) JustTags.getMainDatabase().savePlayer(this);
-        else JustTags.getMainDatabase().savePlayer(this).join();
+//        MessageUtils.logInfo("Saving player " + getIdentifier() + ". Async? " + async);
+        JustTags.getMainDatabase().pushPlayer(this, async);
     }
 
     public void save() {
@@ -294,11 +307,11 @@ public class TagPlayer implements Identifiable {
     }
 
     public void register() {
-        TagManager.registerPlayer(this);
+        TagManager.loadPlayer(this);
     }
 
     public void unregister() {
-        TagManager.unregisterPlayer(this);
+        TagManager.unloadPlayer(this, false);
     }
 
     public void refreshTagInstances() {
@@ -351,5 +364,18 @@ public class TagPlayer implements Identifiable {
 
     public static Optional<ConfiguredTag> getConfiguredTag(String identifier) {
         return TagManager.getTag(identifier);
+    }
+
+    public TagPlayer augment(CompletableFuture<Optional<TagPlayer>> optionalCompletableFuture) {
+        CompletableFuture.runAsync(() -> {
+            Optional<TagPlayer> optional = optionalCompletableFuture.join();
+            if (optional.isEmpty()) return;
+            TagPlayer player = optional.get();
+
+            this.container.putAll(player.getContainer());
+            this.available.addAll(player.getAvailable());
+        });
+
+        return this;
     }
 }

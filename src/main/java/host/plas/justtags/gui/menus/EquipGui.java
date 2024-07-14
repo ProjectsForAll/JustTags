@@ -6,14 +6,16 @@ import host.plas.justtags.gui.GuiType;
 import host.plas.justtags.gui.TagGui;
 import host.plas.justtags.gui.icons.TagIcon;
 import host.plas.justtags.managers.TagManager;
+import host.plas.justtags.utils.MenuUtils;
 import host.plas.justtags.utils.MessageUtils;
-import io.streamlined.bukkit.commands.Sender;
+import host.plas.bou.commands.Sender;
 import lombok.Getter;
 import lombok.Setter;
 import mc.obliviate.inventory.Icon;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
 
@@ -41,7 +43,9 @@ public class EquipGui extends TagGui {
 
     public static void buildInner(EquipGui gui) {
         Player player = gui.player;
-        TagPlayer tagPlayer = TagManager.loadOrCreatePlayerAsync(player.getUniqueId().toString()).join();
+        Optional<TagPlayer> optional = TagManager.getOrGetPlayer(player.getUniqueId().toString());
+        if (optional.isEmpty()) return;
+        TagPlayer tagPlayer = optional.get();
 
         int delta = gui.getCurrentPage() * 15 - 15; // no page 0
         for (int i = 0; i < 15; i++) {
@@ -85,7 +89,9 @@ public class EquipGui extends TagGui {
 
     public static String getDeltaTag(EquipGui gui, int delta) {
         Player player = gui.player;
-        TagPlayer tagPlayer = TagManager.loadOrCreatePlayerAsync(player.getUniqueId().toString()).join();
+        Optional<TagPlayer> optional = TagManager.getOrGetPlayer(player.getUniqueId().toString());
+        if (optional.isEmpty()) return "";
+        TagPlayer tagPlayer = optional.get();
 
         String tag = null;
         Optional<ConfiguredTag> t = tagPlayer.getAvailableTag(delta);
@@ -107,22 +113,29 @@ public class EquipGui extends TagGui {
     }
 
     public static void buildPreviousPanel(EquipGui gui) {
-        gui.addItem(0, getAir());
-        gui.addItem(1, getAir());
+        gui.addItem(0, getOuter());
+        gui.addItem(1, getOuter());
 //        addItem(9, getAir()); // is the button
-        gui.addItem(10, getAir());
-        gui.addItem(18, getAir());
-        gui.addItem(19, getAir());
+        gui.addItem(10, getOuter());
+        gui.addItem(18, getOuter());
+        gui.addItem(19, getOuter());
 
         gui.addItem(9, getPreviousButton(gui));
     }
 
-    public static Icon getAir() {
-        return new Icon(Material.AIR);
+    public static Icon getOuter() {
+        ItemStack stack = new ItemStack(Material.BLACK_STAINED_GLASS_PANE, 1);
+
+        MenuUtils.insertKey(stack);
+
+        return new Icon(stack);
     }
 
     public static Icon getPreviousButton(EquipGui gui) {
-        Icon icon = new Icon(Material.ARROW);
+        ItemStack stack = new ItemStack(Material.ARROW, 1);
+        MenuUtils.insertKey(stack);
+
+        Icon icon = new Icon(stack);
         icon.setName(MessageUtils.colorize("&3&l<<< &bPrevious Page"));
 
         icon.onClick(event -> {
@@ -133,19 +146,22 @@ public class EquipGui extends TagGui {
     }
 
     public static void buildNextPanel(EquipGui gui) {
-        gui.addItem(7, getAir());
-        gui.addItem(8, getAir());
-        gui.addItem(16, getAir());
+        gui.addItem(7, getOuter());
+        gui.addItem(8, getOuter());
+        gui.addItem(16, getOuter());
 //        gui.addItem(17, getAir()); // is the button
-        gui.addItem(25, getAir());
-        gui.addItem(26, getAir());
+        gui.addItem(25, getOuter());
+        gui.addItem(26, getOuter());
 
         gui.addItem(17, getNextButton(gui));
     }
 
     public static Icon getNextButton(EquipGui gui) {
-        Icon icon = new Icon(Material.ARROW);
-        icon.setName(MessageUtils.colorize("&3&lNext Page &b>>>"));
+        ItemStack stack = new ItemStack(Material.ARROW, 1);
+        MenuUtils.insertKey(stack);
+
+        Icon icon = new Icon(stack);
+        icon.setName(MessageUtils.colorize("&bNext Page &3&l>>>"));
 
         icon.onClick(event -> {
             paginate(gui, 1);
@@ -179,7 +195,9 @@ public class EquipGui extends TagGui {
     }
 
     public static int getMaxPages(Player player) {
-        TagPlayer tagPlayer = TagManager.loadOrCreatePlayerAsync(player.getUniqueId().toString()).join();
+        Optional<TagPlayer> optional = TagManager.getOrGetPlayer(player.getUniqueId().toString());
+        if (optional.isEmpty()) return 1;
+        TagPlayer tagPlayer = optional.get();
 
         int totalTags = tagPlayer.getAvailable().size();
 

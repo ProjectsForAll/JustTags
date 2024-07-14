@@ -1,7 +1,7 @@
 package host.plas.justtags.database;
 
 import host.plas.justtags.JustTags;
-import io.streamlined.bukkit.MessageUtils;
+import host.plas.justtags.utils.MessageUtils;
 import lombok.Getter;
 import lombok.Setter;
 import tv.quaint.thebase.lib.hikari.HikariConfig;
@@ -9,20 +9,28 @@ import tv.quaint.thebase.lib.hikari.HikariDataSource;
 
 import java.io.File;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 @Getter @Setter
-public class DBOperator {
+public abstract class DBOperator {
     private ConnectorSet connectorSet;
     private HikariDataSource dataSource;
-    private Connection rawConnection;
     private String pluginUser;
+
+    private Connection rawConnection;
 
     public DBOperator(ConnectorSet connectorSet, String pluginUser) {
         this.connectorSet = connectorSet;
         this.pluginUser = pluginUser;
+
+//        this.connectionMap = new ConcurrentSkipListMap<>();
+//        this.connectionTimers = new ConcurrentSkipListMap<>();
 
         this.dataSource = buildDataSource();
     }
@@ -54,17 +62,20 @@ public class DBOperator {
         return dataSource;
     }
 
-    public Connection buildConnection() {
+    public Connection getConnection(Date qStart) {
         try {
-            if (rawConnection != null && ! rawConnection.isClosed()) {
-                return rawConnection;
-            }
-
             if (dataSource == null) {
                 dataSource = buildDataSource();
             }
 
+//            Connection rawConnection = getConnectionMap().get(qStart);
+
+            if (rawConnection != null && ! rawConnection.isClosed()) {
+                return rawConnection;
+            }
+
             rawConnection = dataSource.getConnection();
+
             return rawConnection;
         } catch (Exception e) {
             e.printStackTrace();
@@ -72,27 +83,21 @@ public class DBOperator {
         }
     }
 
-    public Connection getConnection() {
-        try {
-            if (rawConnection != null && ! rawConnection.isClosed()) {
-                return rawConnection;
-            }
-
-            return buildConnection();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+    public DatabaseType getType() {
+        return connectorSet.getType();
     }
 
-    public ExecutionResult execute(String statement) {
+    public ExecutionResult executeSingle(String statement, Consumer<PreparedStatement> statementBuilder) {
         AtomicReference<ExecutionResult> result = new AtomicReference<>(ExecutionResult.ERROR);
 
         try {
-            Connection connection = getConnection();
-            Statement stmt = connection.createStatement();
+            Date qStart = new Date();
+            Connection connection = getConnection(qStart);
+            PreparedStatement stmt = connection.prepareStatement(statement);
 
-            if (stmt.execute(statement)) result.set(ExecutionResult.YES);
+            statementBuilder.accept(stmt);
+
+            if (stmt.execute()) result.set(ExecutionResult.YES);
             else result.set(ExecutionResult.NO);
         } catch (Exception e) {
             MessageUtils.logInfo("Failed to execute statement: " + statement, e);
@@ -101,11 +106,30 @@ public class DBOperator {
         return result.get();
     }
 
-    public void executeQuery(String statement, DBAction action) {
+    public List<ExecutionResult> execute(String statement, Consumer<PreparedStatement> statementBuilder) {
+        List<ExecutionResult> results = new ArrayList<>();
+
+        String[] statements = statement.split(";;");
+
+        for (String s : statements) {
+            if (s == null || s.isEmpty() || s.isBlank()) continue;
+            String fs = s;
+            if (! fs.endsWith(";")) fs += ";";
+            results.add(executeSingle(fs, statementBuilder));
+        }
+
+        return results;
+    }
+
+    public void executeQuery(String statement, Consumer<PreparedStatement> statementBuilder, DBAction action) {
         try {
-            Connection connection = getConnection();
-            Statement stmt = connection.createStatement();
-            ResultSet set = stmt.executeQuery(statement);
+            Date qStart = new Date();
+            Connection connection = getConnection(qStart);
+            PreparedStatement stmt = connection.prepareStatement(statement);
+
+            statementBuilder.accept(stmt);
+
+            ResultSet set = stmt.executeQuery();
 
             action.accept(set);
         } catch (Exception e) {
@@ -134,6 +158,16 @@ public class DBOperator {
         if (s1.isBlank() || s1.isEmpty()) return;
 
         createSqliteFileIfNotExists();
+    }
+
+    public abstract void ensureTables();
+
+    public abstract void ensureDatabase();
+
+    public void ensureUsable() {
+        this.ensureFile();
+        this.ensureDatabase();
+        this.ensureTables();
     }
 
     public static File getDatabaseFolder() {

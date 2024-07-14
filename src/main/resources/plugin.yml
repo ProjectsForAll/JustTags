@@ -4,6 +4,7 @@ main: '${main}'
 depend:
   - PlaceholderAPI
 folia-supported: true
+api-version: 1.13
 
 commands:
   justtags:

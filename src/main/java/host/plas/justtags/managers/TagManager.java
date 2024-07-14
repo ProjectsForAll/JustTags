@@ -9,7 +9,9 @@ import org.bukkit.Bukkit;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class TagManager {
     @Getter @Setter
@@ -43,82 +45,41 @@ public class TagManager {
     }
 
     @Getter @Setter
-    private static ConcurrentSkipListSet<TagPlayer> players = new ConcurrentSkipListSet<>();
+    private static ConcurrentSkipListSet<TagPlayer> loadedPlayers = new ConcurrentSkipListSet<>();
 
-    public static void registerPlayer(TagPlayer player) {
-        players.add(player);
+    public static void loadPlayer(TagPlayer player) {
+        loadedPlayers.add(player);
     }
 
-    public static void unregisterPlayer(TagPlayer player) {
-        players.remove(player);
+    public static void unloadPlayer(TagPlayer player, boolean save) {
+        loadedPlayers.remove(player);
+
+        if (save) {
+            player.save();
+        }
     }
 
     public static Optional<TagPlayer> getPlayer(String identifier) {
-        return players.stream().filter(player -> player.getIdentifier().equals(identifier)).findFirst();
+        return loadedPlayers.stream().filter(player -> player.getIdentifier().equalsIgnoreCase(identifier)).findFirst();
     }
 
     public static boolean isPlayerLoaded(String identifier) {
-        return players.stream().anyMatch(player -> player.getIdentifier().equals(identifier));
+        return getPlayer(identifier).isPresent();
     }
 
-    public static void putTag(String identifier, int index, String value) {
-        getPlayer(identifier).ifPresent(player -> player.putTag(index, value));
+    public static TagPlayer createNewPlayer(String identifier) {
+        return new TagPlayer(identifier);
     }
 
-    public static void removeTag(String identifier, int index) {
-        getPlayer(identifier).ifPresent(player -> player.removeTag(index));
-    }
+    public static Optional<TagPlayer> getOrGetPlayer(String identifier) {
+        Optional<TagPlayer> player = getPlayer(identifier);
+        if (player.isPresent()) return player;
 
-    public static void refreshPlayers() {
-        ensurePlayers();
+        TagPlayer newPlayer = createNewPlayer(identifier);
+        newPlayer = newPlayer.augment(JustTags.getMainDatabase().loadPlayer(identifier));
 
-        getPlayers().forEach(TagPlayer::refresh);
-    }
+        loadPlayer(newPlayer);
 
-    public static void ensurePlayers() {
-        CompletableFuture.runAsync(() -> {
-            Bukkit.getOnlinePlayers().forEach(player -> {
-                if (! isPlayerLoaded(player.getUniqueId().toString())) {
-                    if (JustTags.getMainDatabase().playerExists(player.getUniqueId().toString()).join()) {
-                        Optional<TagPlayer> optional = JustTags.getMainDatabase().loadPlayer(player.getUniqueId().toString()).join();
-                        optional.ifPresent(TagManager::registerPlayer);
-                    } else {
-                        TagPlayer tagPlayer = new TagPlayer(player.getUniqueId().toString());
-                        registerPlayer(tagPlayer);
-
-                        tagPlayer.save();
-                    }
-                }
-            });
-        });
-    }
-
-    public static CompletableFuture<TagPlayer> loadOrCreatePlayerAsync(String uuid) {
-        return CompletableFuture.supplyAsync(() -> {
-            boolean create = true;
-
-            TagPlayer player = getPlayer(uuid).orElse(null);
-            if (player != null) return player;
-
-            if (JustTags.getMainDatabase().playerExists(uuid).join()) {
-                create = false;
-                Optional<TagPlayer> optional = JustTags.getMainDatabase().loadPlayer(uuid).join();
-                optional.ifPresent(TagManager::registerPlayer);
-
-                if (optional.isEmpty()) create = true;
-                else player = optional.get();
-            }
-
-            if (create) {
-                TagPlayer tagPlayer = new TagPlayer(uuid);
-                registerPlayer(tagPlayer);
-
-                tagPlayer.save();
-
-                player = tagPlayer;
-            }
-
-            return player;
-        });
+        return Optional.of(newPlayer);
     }
 }

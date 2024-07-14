@@ -2,6 +2,7 @@ package host.plas.justtags.data;
 
 import host.plas.justtags.JustTags;
 import host.plas.justtags.managers.TagManager;
+import host.plas.justtags.utils.MessageUtils;
 import lombok.Getter;
 import lombok.Setter;
 import tv.quaint.objects.Identifiable;
@@ -21,8 +22,8 @@ public class ConfiguredTag implements Identifiable {
     }
 
     public void save(boolean async) {
-        if (async) JustTags.getMainDatabase().saveTag(this);
-        else JustTags.getMainDatabase().saveTag(this).join();
+//        MessageUtils.logInfo("Saving tag " + getIdentifier() + " with value " + getValue() + ". Async? " + async);
+        JustTags.getMainDatabase().pushTag(this, async);
     }
 
     public void save() {

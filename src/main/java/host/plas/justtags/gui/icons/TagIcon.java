@@ -3,6 +3,7 @@ package host.plas.justtags.gui.icons;
 import host.plas.justtags.data.ConfiguredTag;
 import host.plas.justtags.data.TagPlayer;
 import host.plas.justtags.managers.TagManager;
+import host.plas.justtags.utils.MenuUtils;
 import host.plas.justtags.utils.MessageUtils;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,7 +26,7 @@ public class TagIcon extends Icon {
     private TagPlayer player;
 
     public TagIcon(String tagIdentifier, TagPlayer player) {
-        super(getTagMaterial(player, tagIdentifier));
+        super(getTagItem(player, tagIdentifier));
 
         this.tagIdentifier = tagIdentifier;
         this.player = player;
@@ -133,7 +134,7 @@ public class TagIcon extends Icon {
         );
     }
 
-    public static ItemStack getTagMaterial(TagPlayer player, String tagIdentifier) {
+    public static ItemStack getTagItem(TagPlayer player, String tagIdentifier) {
         ItemStack stack = new ItemStack(Material.NAME_TAG, 1);
         if (player.hasAvailableTag(tagIdentifier)) {
             ItemMeta meta = stack.getItemMeta();
@@ -153,6 +154,8 @@ public class TagIcon extends Icon {
                 stack.setItemMeta(meta);
             }
         }
+
+        MenuUtils.insertKey(stack);
 
         return stack;
     }
