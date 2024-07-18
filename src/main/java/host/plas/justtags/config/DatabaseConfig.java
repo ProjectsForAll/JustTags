@@ -7,7 +7,7 @@ import tv.quaint.storage.resources.flat.simple.SimpleConfiguration;
 
 public class DatabaseConfig extends SimpleConfiguration {
     public DatabaseConfig() {
-        super("database-config.yml", JustTags.getInstance(), false);
+        super("database-config.yml", JustTags.getMyEventable(), false);
     }
 
     @Override

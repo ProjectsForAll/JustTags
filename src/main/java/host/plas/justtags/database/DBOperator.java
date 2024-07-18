@@ -56,7 +56,7 @@ public abstract class DBOperator {
         config.setIdleTimeout(600000);
         config.setMaxLifetime(1800000);
         config.setDriverClassName(connectorSet.getType().getDriver());
-        config.addDataSourceProperty("allowMultiQueries", true);
+        config.setConnectionTestQuery("SELECT 1");
 
         dataSource = new HikariDataSource(config);
         return dataSource;

@@ -41,13 +41,13 @@ disableAutoTargetJvm()
 dependencies {
     // Defaults.
     compileOnly(files(FILES))
-    shadow(implementation(compileOnly(files(SH_FILES))))
+//    shadow(implementation(compileOnly(files(SH_FILES))))
     annotationProcessor(ANNO)
     implementation(IMPL)
     compileOnly(COMP_ONLY)
     shadow(SHADOW)
 
-    implementation(annotationProcessor(shadow("com.github.Streamline-Essentials:BukkitOfUtils:-SNAPSHOT")))
+    implementation(annotationProcessor(shadow("com.github.Streamline-Essentials:BukkitOfUtils:ver~1_8_8-SNAPSHOT")))
 
     // Other Plugins
     compileOnly(OTHER_PLUGINS)
@@ -77,6 +77,8 @@ shadowJar {
 
     buildDir = "target/"
     archiveFileName = "${project.name}-${project.version}.jar"
+
+//    relocate('com.github.Anon8281.universalScheduler', 'net.streamline.libs.universalScheduler')
 
     minimize()
 }

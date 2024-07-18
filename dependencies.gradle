@@ -5,7 +5,7 @@ ext {
 'org.pf4j:pf4j:3.10.0',
 'org.projectlombok:lombok:1.18.30',
 'commons-codec:commons-codec:1.5',
-'org.xerial:sqlite-jdbc:3.45.1.0',
+'org.xerial:sqlite-jdbc:3.46.0.0',
 'mysql:mysql-connector-java:5.1.6',
 'dev.folia:folia-api:1.20.4-R0.1-SNAPSHOT',
 'org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT',
@@ -24,7 +24,7 @@ ext {
 'org.pf4j:pf4j:3.10.0',
 'org.projectlombok:lombok:1.18.30',
 'commons-codec:commons-codec:1.5',
-'org.xerial:sqlite-jdbc:3.45.1.0',
+'org.xerial:sqlite-jdbc:3.46.0.0',
 'mysql:mysql-connector-java:5.1.6',
 'com.github.hamza-cskn.obliviate-invs:core:4.1.12',
 'net.kyori:adventure-api:4.16.0',
@@ -41,7 +41,7 @@ ext {
 'org.pf4j:pf4j:3.10.0',
 'org.projectlombok:lombok:1.18.30',
 'commons-codec:commons-codec:1.5',
-'org.xerial:sqlite-jdbc:3.45.1.0',
+'org.xerial:sqlite-jdbc:3.46.0.0',
 'mysql:mysql-connector-java:5.1.6',
 'dev.folia:folia-api:1.20.4-R0.1-SNAPSHOT',
 'org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT',
@@ -60,7 +60,7 @@ ext {
 'org.pf4j:pf4j:3.10.0',
 'org.projectlombok:lombok:1.18.30',
 'commons-codec:commons-codec:1.5',
-'org.xerial:sqlite-jdbc:3.45.1.0',
+'org.xerial:sqlite-jdbc:3.46.0.0',
 'mysql:mysql-connector-java:5.1.6',
 'dev.folia:folia-api:1.20.4-R0.1-SNAPSHOT',
 'org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT',
@@ -79,7 +79,7 @@ ext {
     OTHER_PLUGINS = [
             'me.clip:placeholderapi:2.11.5',
     ]
-    SH_FILES = [
-            'implement/UniversalScheduler.jar',
-    ]
+//    SH_FILES = [
+//            'implement/UniversalScheduler.jar',
+//    ]
 }

@@ -16,13 +16,16 @@ import lombok.Setter;
 import mc.obliviate.inventory.InventoryAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
+import tv.quaint.objects.handling.derived.IPluginEventable;
 
+import java.io.File;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 @Getter @Setter
-public final class JustTags extends PluginBase {
+public final class JustTags extends PluginBase implements IPluginEventable {
     @Getter @Setter
     private static JustTags instance;
     @Getter @Setter
@@ -50,6 +53,9 @@ public final class JustTags extends PluginBase {
     @Getter @Setter
     private static AutoCleanTimer autoCleanTimer;
 
+    @Getter @Setter
+    private static MyEventable myEventable;
+
     public JustTags() {
         super();
     }
@@ -58,6 +64,8 @@ public final class JustTags extends PluginBase {
     public void onBaseEnabled() {
         // Plugin startup logic
         setInstance(this);
+
+        setMyEventable(new MyEventable(this));
 
         setMainConfig(new MainConfig());
         setDatabaseConfig(new DatabaseConfig());
@@ -117,5 +125,24 @@ public final class JustTags extends PluginBase {
         }
 
         return onlinePlayers;
+    }
+
+    @Getter @Setter
+    public static class MyEventable implements IPluginEventable {
+        private final JavaPlugin plugin;
+
+        public MyEventable(JavaPlugin plugin) {
+            this.plugin = plugin;
+        }
+
+        @Override
+        public File getDataFolder() {
+            return plugin.getDataFolder();
+        }
+
+        @Override
+        public String getIdentifier() {
+            return plugin.getName();
+        }
     }
 }
