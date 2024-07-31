@@ -1,5 +1,9 @@
 package host.plas.justtags.database;
 
+import host.plas.bou.sql.ConnectorSet;
+import host.plas.bou.sql.DBOperator;
+import host.plas.bou.sql.DatabaseType;
+import host.plas.justtags.JustTags;
 import host.plas.justtags.data.ConfiguredTag;
 import host.plas.justtags.data.TagPlayer;
 import host.plas.justtags.managers.TagManager;
@@ -10,7 +14,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class TagsDBOperator extends DBOperator {
     public TagsDBOperator(ConnectorSet set) {
-        super(set, "Pacifism");
+        super(set, JustTags.getInstance());
     }
 
     @Override

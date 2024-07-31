@@ -2,7 +2,6 @@ package host.plas.justtags.data;
 
 import host.plas.justtags.JustTags;
 import host.plas.justtags.managers.TagManager;
-import host.plas.justtags.utils.MessageUtils;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
@@ -29,8 +28,8 @@ public class TagPlayer implements Identifiable {
         } catch (Exception e) {
             e.printStackTrace();
 
-            MessageUtils.logWarning("Failed to parse UUID from " + identifier);
-            MessageUtils.logWarning("So, we are removing the player from the cache...");
+            JustTags.getInstance().logWarning("Failed to parse UUID from " + identifier);
+            JustTags.getInstance().logWarning("So, we are removing the player from the cache...");
 
             unregister();
 

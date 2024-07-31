@@ -2,7 +2,6 @@ package host.plas.justtags.data;
 
 import host.plas.justtags.JustTags;
 import host.plas.justtags.managers.TagManager;
-import host.plas.justtags.utils.MessageUtils;
 import lombok.Getter;
 import lombok.Setter;
 import tv.quaint.objects.Identifiable;

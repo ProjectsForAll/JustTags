@@ -1,8 +1,10 @@
 name: '${name}'
 version: '${version}'
 main: '${main}'
+authors: [ Drak ]
 depend:
   - PlaceholderAPI
+  - BukkitOfUtils
 folia-supported: true
 api-version: 1.13
 

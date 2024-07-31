@@ -1,8 +1,8 @@
 package host.plas.justtags.config;
 
+import host.plas.bou.sql.ConnectorSet;
+import host.plas.bou.sql.DatabaseType;
 import host.plas.justtags.JustTags;
-import host.plas.justtags.database.ConnectorSet;
-import host.plas.justtags.database.DatabaseType;
 import tv.quaint.storage.resources.flat.simple.SimpleConfiguration;
 
 public class DatabaseConfig extends SimpleConfiguration {

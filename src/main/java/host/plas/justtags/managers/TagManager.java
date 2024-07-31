@@ -5,13 +5,9 @@ import host.plas.justtags.data.ConfiguredTag;
 import host.plas.justtags.data.TagPlayer;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Bukkit;
 
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class TagManager {
     @Getter @Setter

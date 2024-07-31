@@ -1,20 +1,12 @@
 package host.plas.justtags.utils;
 
 import host.plas.justtags.JustTags;
-import mc.obliviate.inventory.GuiIcon;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.function.Consumer;
 
 public class MenuUtils {
     public static ConcurrentSkipListSet<Integer> getOuter(int rows) {
